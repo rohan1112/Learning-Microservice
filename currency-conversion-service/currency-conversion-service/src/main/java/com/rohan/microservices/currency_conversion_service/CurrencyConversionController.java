@@ -16,13 +16,13 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("currency-conversion")
 public class CurrencyConversionController {
 	
-//	@Autowired
-//	private RestTemplate restTemaplate;
+	@Autowired
+	CurrencyExchangeProxy proxy;
 	
 	@Autowired
 	private Environment env;
 
-	@GetMapping("/from/{fromCurrency}/to/{toCurrency}/quantity/{quantity}")
+	@GetMapping("/rest/from/{fromCurrency}/to/{toCurrency}/quantity/{quantity}")
 	public CurrencyConversion getCalculatedCurrencyConversion(
 			@PathVariable("fromCurrency") String fromCurrency,
 			@PathVariable("toCurrency") String toCurrency,
@@ -36,7 +36,21 @@ public class CurrencyConversionController {
 		CurrencyConversion result=reponseEntity.getBody();
 		result.setQuantity(quantity);
 		result.setCalculatedQuantity(result.getConversionMultiple().multiply(quantity));
-//		result.setEnvironment(env.getProperty("local.server.port"));
+		result.setEnvironment(result.getEnvironment()+ " Rest Template");
+		return result;
+	}
+	
+	@GetMapping("/feign/from/{fromCurrency}/to/{toCurrency}/quantity/{quantity}")
+	public CurrencyConversion getCalculatedCurrencyConversionFeign(
+			@PathVariable("fromCurrency") String fromCurrency,
+			@PathVariable("toCurrency") String toCurrency,
+			@PathVariable("quantity") BigDecimal quantity) {
+		
+		CurrencyConversion result=proxy.getExchangeCurrency(fromCurrency, toCurrency);
+		result.setQuantity(quantity);
+		result.setCalculatedQuantity(result.getConversionMultiple().multiply(quantity));
+		result.setEnvironment(result.getEnvironment()+ " Feign");
+
 		return result;
 	}
 }
